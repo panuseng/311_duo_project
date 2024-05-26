@@ -4,25 +4,31 @@ CFLAGS = `pkg-config --cflags raylib`
 LDFLAGS = `pkg-config --libs raylib` -lpthread
 
 # Targets
-TARGET = client
+TARGETS = client server
 
 # Source files
-SOURCES = client.c
+CLIENT_SOURCES = client.c
+SERVER_SOURCES = Server.c # Capital S to match your filename
 
 # Object files
-OBJECTS = $(SOURCES:.c=.o)
+CLIENT_OBJECTS = $(CLIENT_SOURCES:.c=.o)
+SERVER_OBJECTS = $(SERVER_SOURCES:.c=.o)
 
 # Default rule
-all: $(TARGET)
+all: $(TARGETS)
 
-# Rule to compile the executable
-$(TARGET): $(OBJECTS)
-	$(CC) $(OBJECTS) $(LDFLAGS) -o $@
+# Rule to compile the client executable
+client: $(CLIENT_OBJECTS)
+	$(CC) $(CLIENT_OBJECTS) $(LDFLAGS) -o $@
+
+# Rule to compile the server executable
+server: $(SERVER_OBJECTS)
+	$(CC) $(SERVER_OBJECTS) $(LDFLAGS) -o $@
 
 # Rule to compile each object file
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
-# Rule to clean the project (remove object files and executable)
+# Rule to clean the project (remove object files and executables)
 clean:
-	rm -f $(OBJECTS) $(TARGET)
+	rm -f $(CLIENT_OBJECTS) $(SERVER_OBJECTS) $(TARGETS)

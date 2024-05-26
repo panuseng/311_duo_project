@@ -5,6 +5,10 @@
 #include <arpa/inet.h>
 #include <pthread.h>
 
+#include "raylib.h"
+#define RAYGUI_IMPLEMENTATION
+#include "raygui.h"
+
 // Color
 #define RED "\033[1;31m"
 #define BLUE "\033[1;34m"
@@ -85,6 +89,7 @@ void *socket_management(void *arg) {
 		pthread_join(thread_id, (void **)&result);
 
 		//GUI GUI GUI down// //GUI
+		DrawText(result, 100, 100, 20, GRAY);
 		printf("Result: "BLUE"%s\n"RESET, (char *)result); // พิมพ์ผลลัพธ์
 		free(result); // ควรปล่อยหน่วยความจำ
 	}
@@ -92,10 +97,21 @@ void *socket_management(void *arg) {
 }
 
 int main(int argc, char **argv) {
+	const int screenWidth = 300;
+	const int screenHeight = 300;
 	// #define SERVER_PORT 1100
 	// #define BUFFER_SIZE 1024
+
 	printf("Starting server...\n"); // พิมพ์ข้อความตั้งแต่แรก
+	InitWindow(screenWidth, screenHeight, "Server");
+
 	pthread_t server_tid;
-	pthread_create(&server_tid, NULL, socket_management, NULL);
+	while (!WindowShouldClose()) {
+		BeginDrawing();
+			ClearBackground(RAYWHITE);
+			DrawText("result", 2, 1, 20, GRAY);
+			pthread_create(&server_tid, NULL, socket_management, NULL);
+		EndDrawing();
+	}
 	pthread_exit(NULL);
 }
