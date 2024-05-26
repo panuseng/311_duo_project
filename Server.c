@@ -3,6 +3,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <arpa/inet.h>
+#include <pthread.h>
 
 // Color
 #define RED "\033[1;31m"
@@ -13,7 +14,8 @@
 #define SERVER_PORT 1100
 #define BUFFER_SIZE 1024 //ควรลดลงไหม
 
-char* 	mini(char Str[]) {
+void*	mini(void *arg) {
+	char	*Str = (char*)arg;
 
 	int		Diff_Number = 8;//		Number +-8 48 - 57 '0' - '9'
 	int		Diff_A = 9;//			A +- 9 65 - 90 'A' - 'Z'
@@ -23,7 +25,7 @@ char* 	mini(char Str[]) {
 		return NULL;
 	int	length = strlen(Str) / 2;
 	char *mini_Str = (char*)malloc(length + 1);
-	if !(mini_Str)
+	if (!mini_Str)
 		return NULL;
 
 	int		i = 0;//	Str
@@ -46,7 +48,7 @@ char* 	mini(char Str[]) {
 		i += 2;
 	}
 
-	return mini_Str;
+	return (void*)mini_Str;
 }
 
 
@@ -56,9 +58,8 @@ void *socket_menagement(void *arg) {
 	int			client_socket;
 	int			*new_sock;
 
-	struct		sockaddr_in;
-	struct		server_addr;
-	struct		client_addr;
+	struct		sockaddr_in server_addr;
+	struct		sockaddr_in client_addr;
 
 	pthread_t	thread_id;
 
@@ -69,32 +70,33 @@ void *socket_menagement(void *arg) {
 	// ประเภท ip ต้องไปอ่าน
 	server_addr.sin_family = AF_INET;
 	server_addr.sin_addr.s_addr = INADDR_ANY;
-	server_addr.sin_port = htons(PORT);
+	server_addr.sin_port = htons(SERVER_PORT);
 
 	bind(server_socket, (struct sockaddr *)&server_addr, sizeof(server_addr));//น่าสนใจ เป็นตัวผูก server & address
 	listen(server_socket, 10); //รอการเชื่อมต่อsocket ที่กำหนด ตามจน.เครื่อง
 
 	while ((client_socket = accept(server_socket, (struct sockaddr *)&client_addr, &addr_size)))//accept การเชื่อม 				จนกว่าจะหยุดเชื่อมก็เชื่อม
 	{
+		char*	result;
 		char	input_Client[BUFFER_SIZE];
 
 		new_sock = (int *)malloc(sizeof(int));
 		*new_sock = client_socket;
 
-		recv(new_sock, input_Client, BUFFER_SIZE, 0); //Ag 1 รับผ่านตัวหนึ่งเลข Ag 2 ตัวรับ Ag 3 ขนาด Ag 4 ไม่แน่ใจ
+		recv(*new_sock, input_Client, BUFFER_SIZE, 0); //Ag 1 รับผ่านตัวหนึ่งเลข Ag 2 ตัวรับ Ag 3 ขนาด Ag 4 ไม่แน่ใจ
 		//ได้string มาหละ
-		char* string = pthread_create(&thread_id, NULL, mini, input_Client);
-		printf(string);
+		pthread_create(&thread_id, NULL, mini, input_Client);
 		// pthread_detach(thread_id);
+		pthread_join(thread_id, (void**)&result);
+		printf("%c", *result);
 	}
 
 	close(server_socket);
 	return NULL;
 }
 
-int		main(int argc, *char argv[])
+int		main(int argc, char **argv)
 {
-
 	// #define SERVER_PORT 1100
 	// #define BUFFER_SIZE 1024
 	pthread_t server_tid;
