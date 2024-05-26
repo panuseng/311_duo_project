@@ -1,7 +1,7 @@
 # Compiler and flags
 CC = cc
 CFLAGS = `pkg-config --cflags raylib`
-LDFLAGS = `pkg-config --libs raylib`
+LDFLAGS = `pkg-config --libs raylib` -lpthread
 
 # Targets
 TARGET = client
