@@ -50,68 +50,80 @@ void* mini(void *arg) {
 		}
 		i += 2;
 	}
-
+	mini_Str[j] = '\0';
 	return (void *)mini_Str;
 }
 
 void *socket_management(void *arg) {
-	int server_socket;
-	int client_socket;
-	int *new_sock;
+    int server_socket;
+    int client_socket;
+    int *new_sock;
 
-	struct sockaddr_in server_addr;
-	struct sockaddr_in client_addr;
+    struct sockaddr_in server_addr;
+    struct sockaddr_in client_addr;
 
-	pthread_t thread_id;
+    pthread_t thread_id;
 
-	socklen_t addr_size = sizeof(struct sockaddr_in);
+    socklen_t addr_size = sizeof(struct sockaddr_in);
 
-	server_socket = socket(AF_INET, SOCK_STREAM, 0); // ต้องไปดู
+    server_socket = socket(AF_INET, SOCK_STREAM, 0);
+    if (server_socket < 0) {
+        perror("ไม่สามารถสร้าง socket ได้");
+        return NULL;
+    }
 
-	// ประเภท ip ต้องไปอ่าน
-	server_addr.sin_family = AF_INET;
-	server_addr.sin_addr.s_addr = INADDR_ANY;
-	server_addr.sin_port = htons(SERVER_PORT);
+    server_addr.sin_family = AF_INET;
+    server_addr.sin_addr.s_addr = INADDR_ANY;
+    server_addr.sin_port = htons(SERVER_PORT);
 
-	bind(server_socket, (struct sockaddr *)&server_addr, sizeof(server_addr)); // น่าสนใจ เป็นตัวผูก server & address
-	listen(server_socket, 10);                                                // รอการเชื่อมต่อsocket ที่กำหนด ตามจน.เครื่อง
+    if (bind(server_socket, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
+        perror("ไม่สามารถ bind ได้");
+        return NULL;
+    }
+    listen(server_socket, 1);
+	    while ((client_socket = accept(server_socket, (struct sockaddr *)&client_addr, &addr_size))) {
+        char *result;
+        char input_Client[BUFFER_SIZE];
 
-	while ((client_socket = accept(server_socket, (struct sockaddr *)&client_addr, &addr_size))) // accept การเชื่อม 				จนกว่าจะหยุดเชื่อมก็เชื่อม
-	{
-		char *result;
-		char input_Client[BUFFER_SIZE];
+        new_sock = (int *)malloc(sizeof(int));
+        *new_sock = client_socket;
 
-		new_sock = (int *)malloc(sizeof(int));
-		*new_sock = client_socket;
+        memset(input_Client, 0, BUFFER_SIZE);
+        recv(*new_sock, input_Client, BUFFER_SIZE, 0);
+        pthread_create(&thread_id, NULL, mini, (void *)input_Client);
+        pthread_join(thread_id, (void **)&result);
 
-		recv(*new_sock, input_Client, BUFFER_SIZE, 0);
-		pthread_create(&thread_id, NULL, mini, (void *)input_Client);
-		pthread_join(thread_id, (void **)&result);
+        // แสดงผลในเทอร์มินัล
+        printf("ผลลัพธ์: " BLUE_T "%s\n" RESET_T, (char *)result);
 
-		//GUI GUI GUI down// //GUI
-		DrawText(result, 100, 100, 20, GRAY);
-		printf("Result: "BLUE_T"%s\n"RESET_T, (char *)result); // พิมพ์ผลลัพธ์
-		free(result); // ควรปล่อยหน่วยความจำ
-	}
-		// return NULL;
+        // ส่งผลลัพธ์กลับไปยัง client
+        send(*new_sock, result, strlen(result), 0);
+        free(result); // ปล่อยหน่วยความจำหลังส่งผลลัพธ์
+        free(new_sock); // ปล่อยหน่วยความจำ socket
+        close(client_socket);
+    }
+    close(server_socket);
+    return NULL;
 }
 
 int main(int argc, char **argv) {
-	const int screenWidth = 300;
-	const int screenHeight = 300;
-	// #define SERVER_PORT 1100
-	// #define BUFFER_SIZE 1024
+    const int screenWidth = 300;
+    const int screenHeight = 300;
 
-	printf(GREEN_T"Starting server...\n"RESET_T); // พิมพ์ข้อความตั้งแต่แรก
-	InitWindow(screenWidth, screenHeight, "Server");
+    printf(GREEN_T "กำลังเริ่มต้น server...\n" RESET_T); // พิมพ์ข้อความเริ่มต้น
+    InitWindow(screenWidth, screenHeight, "Server");
 
-	pthread_t server_tid;
-	while (!WindowShouldClose()) {
-		BeginDrawing();
-			ClearBackground(RAYWHITE);
-			DrawText("result", 2, 1, 20, GRAY);
-			pthread_create(&server_tid, NULL, socket_management, NULL);
-		EndDrawing();
-	}
-	pthread_exit(NULL);
+    pthread_t server_tid;
+    pthread_create(&server_tid, NULL, socket_management, NULL);
+
+    while (!WindowShouldClose()) {
+        BeginDrawing();
+        ClearBackground(RAYWHITE);
+        DrawText("Server กำลังทำงาน...", 10, 10, 20, GRAY);
+        EndDrawing();
+    }
+
+    pthread_exit(NULL);
+    CloseWindow();
+    return 0;
 }
