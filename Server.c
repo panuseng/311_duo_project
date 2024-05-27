@@ -10,10 +10,10 @@
 #include "raygui.h"
 
 // Color
-#define RED "\033[1;31m"
-#define BLUE "\033[1;34m"
-#define RESET "\033[0m"
-#define GREEN "\033[32m"
+#define RED_T "\033[1;31m"
+#define BLUE_T "\033[1;34m"
+#define RESET_T "\033[0m"
+#define GREEN_T "\033[32m"
 
 #define SERVER_PORT 1100
 #define BUFFER_SIZE 1024 //ควรลดลงไหม
@@ -90,10 +90,10 @@ void *socket_management(void *arg) {
 
 		//GUI GUI GUI down// //GUI
 		DrawText(result, 100, 100, 20, GRAY);
-		printf("Result: "BLUE"%s\n"RESET, (char *)result); // พิมพ์ผลลัพธ์
+		printf("Result: "BLUE_T"%s\n"RESET_T, (char *)result); // พิมพ์ผลลัพธ์
 		free(result); // ควรปล่อยหน่วยความจำ
 	}
-		return NULL;
+		// return NULL;
 }
 
 int main(int argc, char **argv) {
@@ -102,7 +102,7 @@ int main(int argc, char **argv) {
 	// #define SERVER_PORT 1100
 	// #define BUFFER_SIZE 1024
 
-	printf("Starting server...\n"); // พิมพ์ข้อความตั้งแต่แรก
+	printf(GREEN_T"Starting server...\n"RESET_T); // พิมพ์ข้อความตั้งแต่แรก
 	InitWindow(screenWidth, screenHeight, "Server");
 
 	pthread_t server_tid;
