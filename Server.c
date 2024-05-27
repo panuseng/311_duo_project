@@ -18,6 +18,8 @@
 #define SERVER_PORT 1100
 #define BUFFER_SIZE 1024 //ควรลดลงไหม
 
+char receivedMessage[BUFFER_SIZE] = ""; // Initialize with an empty string
+
 void* mini(void *arg) {
 	char *Str = (char *)arg;
 
@@ -93,6 +95,8 @@ void *socket_management(void *arg) {
 		pthread_create(&thread_id, NULL, mini, (void *)input_Client);
 		pthread_join(thread_id, (void **)&result);
 
+		strcpy(receivedMessage, (char *)result);
+
 		// แสดงผลในเทอร์มินัล
 		printf("ผลลัพธ์: " BLUE_T "%s\n" RESET_T, (char *)result);
 
@@ -119,7 +123,9 @@ int main(int argc, char **argv) {
 	while (!WindowShouldClose()) {
 		BeginDrawing();
 		ClearBackground(RAYWHITE);
-		DrawText("Server กำลังทำงาน...", 10, 10, 20, GRAY);
+		DrawText("Server listen...", 10, 10, 20, GRAY);
+		DrawText(receivedMessage, 20, 20, 20, DARKGRAY);
+
 		EndDrawing();
 	}
 
